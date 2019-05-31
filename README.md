@@ -20,7 +20,7 @@ Software package involves:
 
 ### Prerequisities 
 
-All utilities were tested under **Matlab 2017b** or newer both on Linux and Windows platforms.
+All utilities were tested under **Matlab 2017a** or newer both on Linux and Windows platforms.
 
 ### Downloading the database
 Download instruction can be found on [https://asap.ite.tul.cz/downloads/mirage/][MIRaGe]
