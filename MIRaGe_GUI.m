@@ -6,111 +6,122 @@ function MIRaGe_GUI()
 
     [estimators_names,estimators_parameters] = find_RTF_estimators();
 
-selected_method_idx = 2;
-selected_method = estimators_names(selected_method_idx);
-RTF_est_params.targetFS = 48000;
-RTF_est_params.RTFlength = 1024;
-% parameters_handles.texts = [];
-% parameters_handles.edits = [];
-folder_database = pwd+""+filesep+"MIRaGe";
-folder_output = pwd+""+filesep+"Output";
-snd_type = 'WN';
-mic_matrix = [];
-grid_pos = [];
-oog_pos = [];
-t60 = ["100","300","600"];
-t60_selected = [1,0,0];
-Font_size = 8;
-export_var_name = "RTFs_struct";
-stop_flag = 0;
-nm_RTFs = 0;
-grid_pos_v2 = {false(24,1),false(19,1),false(9,1)};
-mic_matrix = false(31,32);
-oog_pos_v2 = false(25,1);
+    if(exist('last_settings','file')==2)
+        load('last_settings');
+    end
+    
+    
+    selected_method_idx = 2;
+    selected_method = estimators_names(selected_method_idx);
+    RTF_est_params.targetFS = 48000;
+    RTF_est_params.RTFlength = 1024;
+    % parameters_handles.texts = [];
+    % parameters_handles.edits = [];
+    folder_database = pwd+""+filesep+"MIRaGe";
+    folder_output = pwd+""+filesep+"Output";
+    snd_type = 'WN';
+    mic_matrix = [];
+    grid_pos = [];
+    oog_pos = [];
+    t60 = ["100","300","600"];
+    t60_selected = [1,0,0];
+    Font_size = 8;
+    export_var_name = "RTFs_struct";
+    stop_flag = 0;
+    nm_RTFs = 0;
+    grid_pos_v2 = {false(24,1),false(19,1),false(9,1)};
+    mic_matrix = false(31,32);
+    oog_pos_v2 = false(25,1);
 
-screen_res = get(0,'ScreenSize');
-fig = figure(   'Units','normalized','Position',[ 0.5-(600/screen_res(3)/2) , 0.5-(350/screen_res(4)/2) ,600/screen_res(3), 350/screen_res(4)],'MenuBar','none',...
-                'ToolBar','none','Resize','off','CloseRequestFcn',@app_close_callback, ...
-                'NumberTitle','off','Name','RTF ');
-            
-            
-panel_folder_selection = uipanel(fig,'Title','Folders selection','Position',[0.0100    0.8000    0.65    0.2000]);
-uicontrol( panel_folder_selection,'Units','normalized','Position',[0.01 0.51 0.98 0.48],'Style','PushButton',...
-                                'String','Database folder selection','ToolTipString',folder_database,'Tag','folder_in','CallBack',@btn_folder_selection);
-uicontrol( panel_folder_selection,'Units','normalized','Position',[0.01 0.01 0.98 0.48],'Style','PushButton',...
-                                'String','Output folder selection','ToolTipString',folder_output,'Tag','folder_out','CallBack',@btn_folder_selection);
+    
+    if(exist('last_settings.mat','file')==2)
+        load('last_settings.mat');
+    end
+    
+    
+    screen_res = get(0,'ScreenSize');
+    fig = figure(   'Units','normalized','Position',[ 0.5-(600/screen_res(3)/2) , 0.5-(350/screen_res(4)/2) ,600/screen_res(3), 350/screen_res(4)],'MenuBar','none',...
+                    'ToolBar','none','Resize','off','CloseRequestFcn',@app_close_callback, ...
+                    'NumberTitle','off','Name','RTF ','NextPlot','new');
 
-% ------
-panel_snd_type_selection = uibuttongroup(fig,'Title','Input sound type','Position',[0.0100    0.6000    0.322    0.2000]);
-uicontrol(  panel_snd_type_selection,'Units','normalized','Position',[0.01 0.51 0.98 0.48],'Style','RadioButton',...
-            'String','WhiteNoise','Tag',"WN",'Value',strcmp(snd_type,"WN"),'Callback',@snd_type_callback);
-uicontrol(  panel_snd_type_selection,'Units','normalized','Position',[0.01 0.01 0.98 0.48],'Style','RadioButton', ...
-            'Tag',"Chirp",'String','Chirp','Value',strcmp(snd_type,"Chirp"),'Callback',@snd_type_callback);
 
-% ------
-panel_RTF_method_selection = uibuttongroup(fig,'Title','RTF estimation method','Position',[0.3351    0.6000    0.322    0.2000]);
-method_help = help(estimators_names(selected_method_idx));
-uicontrol(   panel_RTF_method_selection,'Units','normalized','Position',[0.01 0.25 0.98 0.48],'Style','PopUpMenu',...
-                    'String',estimators_names,'Value',selected_method_idx,'ToolTipString',method_help,'CallBack',@method_selection_callback);
-                
-% ------        
-panel_RTF_params_s_selection = uibuttongroup(fig,'Title','RTF - Method specific parameters','Position',[0.3350    0.0100    0.665    0.3800]);
-add_all_parameters();
+    panel_folder_selection = uipanel(fig,'Title','Folders selection','Position',[0.0100    0.8000    0.65    0.2000]);
+    uicontrol( panel_folder_selection,'Units','normalized','Position',[0.01 0.51 0.98 0.48],'Style','PushButton',...
+                                    'String','Database folder selection','ToolTipString',folder_database,'Tag','folder_in','CallBack',@btn_folder_selection);
+    uicontrol( panel_folder_selection,'Units','normalized','Position',[0.01 0.01 0.98 0.48],'Style','PushButton',...
+                                    'String','Output folder selection','ToolTipString',folder_output,'Tag','folder_out','CallBack',@btn_folder_selection);
 
-% ------
-panel_RTF_params_b_selection = uibuttongroup(fig,'Title','RTF - Basic parameters','Position',[0.3350    0.4000    0.322    0.2000]);
-uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.01 0.01 0.48 0.48], 'Style', 'Text',...
-            'String','RTF length','HorizontalAlignment','left');
-uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.5 0.01 0.48 0.48], 'Style', 'Edit',...
-            'String',RTF_est_params.RTFlength,'Tag','RTF_length','CallBack',@insert_number_callback,'UserData',RTF_est_params.RTFlength);
-uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.01 0.5 0.48 0.48], 'Style', 'Text',...
-            'String','Target FS','HorizontalAlignment','left');
-uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.5 0.5 0.48 0.48], 'Style', 'Edit',...
-            'String',RTF_est_params.targetFS,'Tag','FS','CallBack',@insert_number_callback,'UserData',RTF_est_params.targetFS);
-        
-% ------
-panel_t_60_selection = uibuttongroup(fig,'Title','T60 selection [ms]','Position',[0.0100    0.4000    0.322    0.2000]);
-uicontrol(  panel_t_60_selection,'Units','normalized','Position',[0.01 0.01 0.32 0.98],'Style','CheckBox',...
-            'String','100','Tag','100','Value',t60_selected(1),'Callback',@t60_type_callback);
-uicontrol(  panel_t_60_selection,'Units','normalized','Position',[0.34 0.01 0.32 0.98],'Style','CheckBox',...
-            'String','300','Tag','300','Value',t60_selected(2),'Callback',@t60_type_callback);
-uicontrol(  panel_t_60_selection,'Units','normalized','Position',[0.67 0.01 0.32 0.98],'Style','CheckBox',...
-            'String','600','Tag','600','Value',t60_selected(3),'Callback',@t60_type_callback);
+    % ------
+    panel_snd_type_selection = uibuttongroup(fig,'Title','Input sound type','Position',[0.0100    0.6000    0.322    0.2000]);
+    uicontrol(  panel_snd_type_selection,'Units','normalized','Position',[0.01 0.51 0.98 0.48],'Style','RadioButton',...
+                'String','WhiteNoise','Tag',"WN",'Value',strcmp(snd_type,"WN"),'Callback',@snd_type_callback);
+    uicontrol(  panel_snd_type_selection,'Units','normalized','Position',[0.01 0.01 0.98 0.48],'Style','RadioButton', ...
+                'Tag',"Chirp",'String','Chirp','Value',strcmp(snd_type,"Chirp"),'Callback',@snd_type_callback);
 
-% ------
-panel_positions_selection = uibuttongroup(fig,'Title','Positions/Mics selection','Position',[0.0100    0.0100    0.322    0.3800]);
+    % ------
+    panel_RTF_method_selection = uibuttongroup(fig,'Title','RTF estimation method','Position',[0.3351    0.6000    0.322    0.2000]);
+    method_help = help(estimators_names(selected_method_idx));
+    uicontrol(   panel_RTF_method_selection,'Units','normalized','Position',[0.01 0.25 0.98 0.48],'Style','PopUpMenu',...
+                        'String',estimators_names,'Value',selected_method_idx,'ToolTipString',method_help,'CallBack',@method_selection_callback);
 
-uicontrol( panel_positions_selection,'Units','normalized','Position',[0.01 0.76 0.98 0.24],'Style','PushButton',...
-                                'String','Microphones selection','ToolTipString',"Microphone selector, Reference -> Target matrix",...
-                                'Tag','MICs','CallBack',@mic_pos_selector_callback);
-uicontrol( panel_positions_selection,'Units','normalized','Position',[0.01 0.51 0.98 0.24],'Style','PushButton',...
-                                'String','Grid positions selection','ToolTipString',"Positions inside grid selector",...
-                                'Tag','Grid','CallBack',@mic_pos_selector_callback);
-uicontrol( panel_positions_selection,'Units','normalized','Position',[0.01 0.26 0.98 0.24],'Style','PushButton',...
-                                'String','OOG positions selections','ToolTipString',"Out of grid position selector",...
-                                'Tag','OOG','CallBack',@mic_pos_selector_callback);
-nm_RTFs_text = uicontrol( panel_positions_selection,'Units','normalized','Position',[0.01 0.01 0.98 0.24],'Style','text',...
-                                'String','# selected RTFs: 0');
-                            
-% ------
-btn_start = uicontrol(fig,'Units','normalized','Position',[0.67 0.8  0.32 0.18],'Style','PushButton',...
-                                'String','START','CallBack',@btn_start_callback);
-                            
-completed_text = uicontrol(fig,'Units','normalized','Position',[0.67 0.6  0.32 0.2],'Style','text',...
-                                'String',['0/0'],'Visible','off');
-estimated_time_text = uicontrol(fig,'Units','normalized','Position',[0.67 0.5  0.32 0.2],'Style','text',...
-                                'String',"Estimated time: 0",'Visible','off');
-                            
-panel_output_variables = uibuttongroup(fig,'Title','Export settings','Position',[0.67    0.4    0.32    0.2]);
+    % ------        
+    panel_RTF_params_s_selection = uibuttongroup(fig,'Title','RTF - Method specific parameters','Position',[0.3350    0.0100    0.665    0.3800]);
+    add_all_parameters();
 
-uicontrol(panel_output_variables,'Units','normalized','Position',[0.01 0.49 1 0.49],'Style','text',...
-                                'String',"Exported variable name");
-uicontrol(panel_output_variables,'Units','normalized','Position',[0.01 0.01 1 0.49],'Style','Edit',...
-                                'String',export_var_name,'CallBack',@edit_export_var_callback);
+    % ------
+    panel_RTF_params_b_selection = uibuttongroup(fig,'Title','RTF - Basic parameters','Position',[0.3350    0.4000    0.322    0.2000]);
+    uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.01 0.01 0.48 0.48], 'Style', 'Text',...
+                'String','RTF length','HorizontalAlignment','left');
+    uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.5 0.01 0.48 0.48], 'Style', 'Edit',...
+                'String',RTF_est_params.RTFlength,'Tag','RTF_length','CallBack',@insert_number_callback,'UserData',RTF_est_params.RTFlength);
+    uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.01 0.5 0.48 0.48], 'Style', 'Text',...
+                'String','Target FS','HorizontalAlignment','left');
+    uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.5 0.5 0.48 0.48], 'Style', 'Edit',...
+                'String',RTF_est_params.targetFS,'Tag','FS','CallBack',@insert_number_callback,'UserData',RTF_est_params.targetFS);
 
-all_UI_controls = findobj(fig,'Type','UIControl');
+    % ------
+    panel_t_60_selection = uibuttongroup(fig,'Title','T60 selection [ms]','Position',[0.0100    0.4000    0.322    0.2000]);
+    uicontrol(  panel_t_60_selection,'Units','normalized','Position',[0.01 0.01 0.32 0.98],'Style','CheckBox',...
+                'String','100','Tag','100','Value',t60_selected(1),'Callback',@t60_type_callback);
+    uicontrol(  panel_t_60_selection,'Units','normalized','Position',[0.34 0.01 0.32 0.98],'Style','CheckBox',...
+                'String','300','Tag','300','Value',t60_selected(2),'Callback',@t60_type_callback);
+    uicontrol(  panel_t_60_selection,'Units','normalized','Position',[0.67 0.01 0.32 0.98],'Style','CheckBox',...
+                'String','600','Tag','600','Value',t60_selected(3),'Callback',@t60_type_callback);
 
-set(all_UI_controls,'FontSize',Font_size);
+    % ------
+    panel_positions_selection = uibuttongroup(fig,'Title','Positions/Mics selection','Position',[0.0100    0.0100    0.322    0.3800]);
+
+    uicontrol( panel_positions_selection,'Units','normalized','Position',[0.01 0.76 0.98 0.24],'Style','PushButton',...
+                                    'String','Microphones selection','ToolTipString',"Microphone selector, Reference -> Target matrix",...
+                                    'Tag','MICs','CallBack',@mic_pos_selector_callback);
+    uicontrol( panel_positions_selection,'Units','normalized','Position',[0.01 0.51 0.98 0.24],'Style','PushButton',...
+                                    'String','Grid positions selection','ToolTipString',"Positions inside grid selector",...
+                                    'Tag','Grid','CallBack',@mic_pos_selector_callback);
+    uicontrol( panel_positions_selection,'Units','normalized','Position',[0.01 0.26 0.98 0.24],'Style','PushButton',...
+                                    'String','OOG positions selections','ToolTipString',"Out of grid position selector",...
+                                    'Tag','OOG','CallBack',@mic_pos_selector_callback);
+    nm_RTFs_text = uicontrol( panel_positions_selection,'Units','normalized','Position',[0.01 0.01 0.98 0.24],'Style','text',...
+                                    'String','# selected RTFs: 0');
+
+    % ------
+    btn_start = uicontrol(fig,'Units','normalized','Position',[0.67 0.8  0.32 0.18],'Style','PushButton',...
+                                    'String','START','CallBack',@btn_start_callback);
+
+    completed_text = uicontrol(fig,'Units','normalized','Position',[0.67 0.6  0.32 0.2],'Style','text',...
+                                    'String',['0/0'],'Visible','off');
+    estimated_time_text = uicontrol(fig,'Units','normalized','Position',[0.67 0.5  0.32 0.2],'Style','text',...
+                                    'String',"Estimated time: 0",'Visible','off');
+
+    panel_output_variables = uibuttongroup(fig,'Title','Export settings','Position',[0.67    0.4    0.32    0.2]);
+
+    uicontrol(panel_output_variables,'Units','normalized','Position',[0.01 0.49 1 0.49],'Style','text',...
+                                    'String',"Exported variable name");
+    uicontrol(panel_output_variables,'Units','normalized','Position',[0.01 0.01 1 0.49],'Style','Edit',...
+                                    'String',export_var_name,'CallBack',@edit_export_var_callback);
+
+    all_UI_controls = findobj(fig,'Type','UIControl');
+
+    set(all_UI_controls,'FontSize',Font_size);
 
     
     function edit_export_var_callback(src,~)
@@ -293,6 +304,9 @@ set(all_UI_controls,'FontSize',Font_size);
         rmpath(['Dialogs',filesep]);
         rmpath(['RTF_Estimators',filesep]);
         rmpath(['Tools',filesep]);
+ 
+        save('last_settings.mat','selected_method_idx','selected_method','RTF_est_params','folder_database',...
+             'folder_output','snd_type','t60_selected','export_var_name','grid_pos_v2','mic_matrix','oog_pos_v2');
     end
 
     function [estimators_names,estimators_parameters] = find_RTF_estimators()
