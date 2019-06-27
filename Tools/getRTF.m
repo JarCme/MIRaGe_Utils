@@ -3,7 +3,7 @@ function [g,G] = getRTF(method, t60, loc, mic_idx, ref_mic_idx,fs_req, N, input_
     % 
     % Input: 
     %   method = 'TDRTF', 'other_implemented_method_name'
-    %   t60 = Desired t60 level (100, 300 or 600 for real setup; any number for simulated setup)
+    %   t60 = Desired t60 level (100, 300 or 600 for real setup)
     %   loc = 3x1 array of coordinates for the source position | 1x1 index of the source position (out of grid) 
     %   ref_mic = id of the reference microphone
     %   target_mic = id of the taret microphone
@@ -19,9 +19,8 @@ function [g,G] = getRTF(method, t60, loc, mic_idx, ref_mic_idx,fs_req, N, input_
     %   oog_or_grid = 1|0 - 1:OOG 0:Grid;
     
     % Output:
-    %   RTF = 1x(nc_len+c_len) RTF
-    %
-    %   CF = 1x(nc_len+c_len) RTF in time domain
+    %   g = 1x(nc_len+c_len) RTF in time domain
+    %   G = 1x(nc_len+c_len) RTF
     %------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     array_ref_folder = sprintf( '%02d',ceil(mic_idx/5));
@@ -76,19 +75,44 @@ function [g,G] = getRTF(method, t60, loc, mic_idx, ref_mic_idx,fs_req, N, input_
         load(char(full_precomputed_path+precompute_f_name+".mat"));
     elseif (exist(char(full_precomputed_path+precompute_f_name+".mat"),'file') == 0)
         
-        [x_tar, fs] = audioread(char(audio_path_tar+precompute_f_name+".flac"));
+        if(exist(char(audio_path_tar+precompute_f_name+".flac"),'file')==2)
+            [x_tar, fs] = audioread(char(audio_path_tar+precompute_f_name+".flac"));
+        else
+            disp(['Required audiofile: ',char(audio_path_tar+precompute_f_name+".flac"),' was not found']);
+            g = -1;
+            G = -1;
+            return;
+        end
+        
         x_tar = x_tar(:,ref_mic_idx-floor((ref_mic_idx-1)/5)*5) .* phase_corrections(ref_mic_idx);
         
         if(mic_idx == 32) % for ATF computation
-            [x_ref,~] = audioread(char(input_snd_path));
+            if(exist(char(input_snd_path),'file')==2)
+                [x_ref,~] = audioread(char(input_snd_path));
+            else
+                disp(['Required audiofile: ',char(input_snd_path),' was not found']);
+                g = -1;
+                G = -1;
+                return;
+            end
+            
             padding_len = length(x_tar) - length(x_ref);
             if(padding_len>0)
                 x_ref = [x_ref;zeros(padding_len,1)];
             else
                 x_ref = x_ref(1:length(x_tar));
-            end
+            end 
         else
-            [x_ref, ~] = audioread(char(audio_path_ref+precompute_f_name+".flac"));
+            
+            if(exist(char(input_snd_path),'file')==2)
+                [x_ref, ~] = audioread(char(audio_path_ref+precompute_f_name+".flac"));
+            else
+                disp(['Required audiofile: ',char(audio_path_ref+precompute_f_name+".flac"),' was not found']);
+                g = -1;
+                G = -1;
+                return;
+            end
+
             x_ref = x_ref(:,mic_idx-floor((mic_idx-1)/5)*5) .* phase_corrections(mic_idx);
         end
         

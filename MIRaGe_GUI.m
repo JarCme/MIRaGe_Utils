@@ -6,8 +6,15 @@ function MIRaGe_GUI()
 
     [estimators_names,estimators_parameters] = find_RTF_estimators();
 
-    if(exist('last_settings','file')==2)
-        load('last_settings');
+    if(exist('last_settings.mat','file')==2)
+        answer = questdlg('Would you like load previous settings (Database folder and Output folder)','Settings loader', 'Yes','No','Yes');
+% Handle response
+    switch answer
+        case 'Yes'
+            load('last_settings.mat');
+        case 'No' 
+    end
+        
     end
     
     
@@ -188,21 +195,51 @@ function MIRaGe_GUI()
                 how_long = [0,0];
                 for idx_t60 = 1:length( t60(logical( t60_selected)))
                     t60_list =  t60(logical( t60_selected));
-                    [row,col]=find( mic_matrix);
+                    [row,col]=find(mic_matrix);
                     for idx_mic = 1:size(row,1)
-
+                        % FIX ME notify about all packages
+                        if(col(idx_mic) == 32)
+                            array_ref_folder = sprintf( '%02d',ceil(row(idx_mic)/5)); 
+                        else
+                            array_ref_folder = sprintf( '%02d',ceil(col(idx_mic)/5));
+                        end
+                        if(strcmp(array_ref_folder,'07'))
+                            array_ref_folder = "on_SPK_mic";
+                        end
+       
+                        array_tar_folder = sprintf( '%02d', ceil(row(idx_mic)/5));
+                        if(strcmp(array_tar_folder,'07'))
+                            array_tar_folder = "on_SPK_mic";
+                        end
+                        
+                        package_prefix = [snd_type,'_',char(t60_list(idx_t60)),'_'];
+                        
+                        required_packages = [char(package_prefix),char(array_ref_folder),'.zip, ',char(package_prefix),char(array_tar_folder),'.zip'];
+                        if(strcmp(char(array_ref_folder),char(array_tar_folder)))
+                            required_packages = [package_prefix,char(array_ref_folder),'.zip'];
+                        end
+                        
+                        
                         for idx_pos_grid = 1:size( grid_pos,1)
                             if( stop_flag)
-                                  stop_flag = false;
+                                stop_flag = false;
                                 return;
                             end
                             tic;
                             [g,~] = getRTF(     selected_method, t60_list(idx_t60),  grid_pos(idx_pos_grid,:),...
                                                 col(idx_mic), row(idx_mic), RTF_est_params.targetFS,  RTF_est_params.RTFlength, RTF_est_params.input_struct,...
                                                  folder_database, phase_corrections,  folder_output,  snd_type,0);
-
+                            
+                            if(g == -1)
+                                waitfor(warndlg(['Required audiofiles were not found. Required packages: ',required_packages]));
+                                set(findobj(fig,'Type','UIControl'),'Enable','on');
+                                set(src,'String','START');
+                                stop_flag = true;
+                                set(completed_text,'Visible','on');
+                                return;
+                            end
+                            
                             completed = completed + 1;
-
 
                             out_struct.data(completed).g = g;
                             out_struct.data(completed).pos =  grid_pos(idx_pos_grid,:) ;
@@ -214,14 +251,17 @@ function MIRaGe_GUI()
                             how_long(2)=toc;
                             how_long(1)= (how_long(1)*completed+how_long(2))/(completed+1);
                             set(completed_text,'String',completed+"/"+nm_RTFs);
-                            set(estimated_time_text,'String',"Estimated time: "+(nm_RTFs-completed)*(how_long(1)/60)+" mins");
+                            est_secs=seconds((nm_RTFs-completed)*(how_long(1)));
+                            est_secs.Format = 'hh:mm:ss';
+                            set(estimated_time_text,'String',"Estimated time: "+string(est_secs)+" (HH:MM:SS)");
+%                             set(estimated_time_text,'String',"Estimated time: "+(nm_RTFs-completed)*(how_long(1)/60)+" mins");
                             drawnow;
 
                         end
 
                         for idx_pos_oog = 1:length(( oog_pos))
                             if( stop_flag)
-                                 stop_flag = false;
+                                stop_flag = false;
                                 return;
                             end
                             tic;
@@ -229,9 +269,17 @@ function MIRaGe_GUI()
                             [g,~] = getRTF(     selected_method, t60_list(idx_t60),  oog_pos(idx_pos_oog),...
                                                 col(idx_mic), row(idx_mic), RTF_est_params.targetFS,  RTF_est_params.RTFlength, RTF_est_params.input_struct,...
                                                  folder_database, phase_corrections,  folder_output,  snd_type,1);
-
+                            
+                            if(g == -1)
+                                waitfor(warndlg(['Required audiofiles were not found. Required packages:',required_packages]));
+                                set(findobj(fig,'Type','UIControl'),'Enable','on');
+                                set(src,'String','START');
+                                stop_flag = true;
+                                set(completed_text,'Visible','on');
+                                return;
+                            end
+                            
                             completed = completed + 1;
-
 
                             out_struct.data(completed).g = g;
                             out_struct.data(completed).pos =  [oog_pos(idx_pos_oog),-1,-1] ;
@@ -243,7 +291,9 @@ function MIRaGe_GUI()
                             how_long(2)=toc;
                             how_long(1)= (how_long(1)*completed+how_long(2))/(completed+1);
                             set(completed_text,'String',completed+"/"+nm_RTFs);
-                            set(estimated_time_text,'String',"Estimated time: "+(nm_RTFs-completed)*(how_long(1)/60)+" mins");
+                            est_secs=seconds((nm_RTFs-completed)*(how_long(1)));
+                            est_secs.Format = 'hh:mm:ss';
+                            set(estimated_time_text,'String',"Estimated time: "+string(est_secs)+" (HH:MM:SS)");
                             drawnow;
                         end
 
@@ -305,8 +355,9 @@ function MIRaGe_GUI()
         rmpath(['RTF_Estimators',filesep]);
         rmpath(['Tools',filesep]);
  
-        save('last_settings.mat','selected_method_idx','selected_method','RTF_est_params','folder_database',...
-             'folder_output','snd_type','t60_selected','export_var_name','grid_pos_v2','mic_matrix','oog_pos_v2');
+%         save('last_settings.mat','selected_method_idx','selected_method','RTF_est_params','folder_database',...
+%              'folder_output','snd_type','t60_selected','export_var_name','grid_pos_v2','mic_matrix','oog_pos_v2');
+        save('last_settings.mat','folder_database','folder_output');
     end
 
     function [estimators_names,estimators_parameters] = find_RTF_estimators()
@@ -338,7 +389,7 @@ function MIRaGe_GUI()
                         0.51    0.01    0.24    0.49;
                         0.76    0.01    0.24    0.49];
         input_struct = estimators_parameters{ selected_method_idx};
-         RTF_est_params.input_struct = input_struct;
+        RTF_est_params.input_struct = input_struct;
         fields = fieldnames(input_struct);
         if(length(fields)<=8)
             for field_idx = 1:length(fields)  

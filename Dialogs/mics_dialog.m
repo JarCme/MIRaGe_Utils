@@ -210,13 +210,13 @@ function [mics_selected] = mics_dialog(varargin)
                 mics_selected(:,:) = false;
                 
                 start = 1;
-                stop = start+4;
-
+                stop  = 31*5; 
+                
                 for h_i = 1:6
-                    set(handles_all(start:stop),'String',tick_char);
-                    start = (stop+1)+31*5;
-                    stop = start+4;
-                    mics_selected((((h_i-1)*5)+1):((h_i)*5),((h_i-1)*5)+1) = true;
+                    set(handles_all(start:31:stop-1),'String',tick_char);
+                    start = (stop+6);
+                    stop = start+(31*5)-1;
+                    mics_selected(((h_i-1)*5)+1,(((h_i-1)*5)+1):((h_i)*5)) = true;
                 end
   
             case '3_'
@@ -225,14 +225,14 @@ function [mics_selected] = mics_dialog(varargin)
                 set(handles_all,'String','');
                 mics_selected(:,:) = false;
                 
-                start = (2*31)+1;
-                stop = start+4;
-
+                start = 3;
+                stop  = 2+(31*5); 
+                
                 for h_i = 1:6
-                    set(handles_all(start:stop),'String',tick_char);
-                    start = (stop+1)+31*5;
-                    stop = start+4;
-                    mics_selected((((h_i-1)*5)+1):((h_i)*5),((h_i-1)*5)+3) = true;
+                    set(handles_all(start:31:stop-1),'String',tick_char);
+                    start = (stop+6);
+                    stop = start+(31*5)-1;
+                    mics_selected(((h_i-1)*5)+3,(((h_i-1)*5)+1):((h_i)*5)) = true;
                 end
             case 'custom'
                 disp('custom')

@@ -48,6 +48,8 @@ function [xyz_selected,xyz_mesh] = grid_dialog(varargin)
     xlabel(ax,'x');
     ylabel(ax,'y');
     zlabel(ax,'z');
+    fotg = text(ax,150,-200,0,'front of the Grid','Color','black');
+    set(fotg,'Rotation',20);
     leg = legend(ax,[measured_scatter,selected_scatter]);
     set(leg,'Units','normalized');
     set(leg,'Position',[0.24,0.85,0.2,0.12]);
