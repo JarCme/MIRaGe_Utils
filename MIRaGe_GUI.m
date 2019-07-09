@@ -12,11 +12,10 @@ function MIRaGe_GUI()
     switch answer
         case 'Yes'
             load('last_settings.mat');
-        case 'No' 
+        case 'No'
     end
         
     end
-    
     
     selected_method_idx = 2;
     selected_method = estimators_names(selected_method_idx);

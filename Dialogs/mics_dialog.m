@@ -196,7 +196,7 @@ function [mics_selected] = mics_dialog(varargin)
     function radio_presets(src,~)
         switch src.Tag
             case 'atf'
-                disp('atf')
+%                 disp('atf')
                 set(handles_all,'String','');
                 mics_selected(:,:) = false;
                 for h_i = 0:30
@@ -204,7 +204,7 @@ function [mics_selected] = mics_dialog(varargin)
                 end
                 mics_selected(:,end) = true;
             case '1_'
-                disp('1. in each')
+%                 disp('1. in each')
                 
                 set(handles_all,'String','');
                 mics_selected(:,:) = false;
@@ -220,7 +220,7 @@ function [mics_selected] = mics_dialog(varargin)
                 end
   
             case '3_'
-                disp('3. in each')
+%                 disp('3. in each')
                 
                 set(handles_all,'String','');
                 mics_selected(:,:) = false;
@@ -235,7 +235,7 @@ function [mics_selected] = mics_dialog(varargin)
                     mics_selected(((h_i-1)*5)+3,(((h_i-1)*5)+1):((h_i)*5)) = true;
                 end
             case 'custom'
-                disp('custom')
+%                 disp('custom')
         end
     end
 end
