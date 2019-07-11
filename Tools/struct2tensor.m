@@ -4,13 +4,13 @@ function [g_tensor, selected_map] = struct2tensor(varargin)
     %
     %Syntax:
     %
-    %[g_tensor, selected_map] = struct2Tensor(structure)
-    %[g_tensor, selected_map] = struct2Tensor(structure, mic)
-    %[g_tensor, selected_map] = struct2Tensor(structure, mic, ref_mic)
-    %[g_tensor, selected_map] = struct2Tensor(structure, mic, ref_mic, x)
-    %[g_tensor, selected_map] = struct2Tensor(structure, mic, ref_mic, x, y)
-    %[g_tensor, selected_map] = struct2Tensor(structure, mic, ref_mic, x, y, z)
-    %[g_tensor, selected_map] = struct2Tensor(structure, mic, ref_mic, x, y, z, t60)
+    %[g_tensor, selected_map] = struct2tensor(structure)
+    %[g_tensor, selected_map] = struct2tensor(structure, mic)
+    %[g_tensor, selected_map] = struct2tensor(structure, mic, ref_mic)
+    %[g_tensor, selected_map] = struct2tensor(structure, mic, ref_mic, x)
+    %[g_tensor, selected_map] = struct2tensor(structure, mic, ref_mic, x, y)
+    %[g_tensor, selected_map] = struct2tensor(structure, mic, ref_mic, x, y, z)
+    %[g_tensor, selected_map] = struct2tensor(structure, mic, ref_mic, x, y, z, t60)
     %
     %Inputs:
     %   structure = structure containing data from the MIRaGe software
