@@ -1,4 +1,4 @@
-function [g_tensor, selected_map] = struct2Tensor(varargin)
+function [g_tensor, selected_map] = struct2tensor(varargin)
     %Function that returns a tensor of specified filters saved within a
     %structure exported from the MIRaGe Utils software
     %
