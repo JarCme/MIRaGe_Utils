@@ -104,8 +104,8 @@ function [g,G] = getRTF(method, t60, loc, mic_idx, ref_mic_idx,fs_req, N, input_
             end 
         else
             
-            if(exist(char(input_snd_path),'file')==2)
-                [x_ref, ~] = audioread(char(audio_path_ref+precompute_f_name+".flac"));
+            if(exist(char(audio_path_ref+precompute_f_name+".flac"),'file')==2)
+                [x_ref, fs] = audioread(char(audio_path_ref+precompute_f_name+".flac"));
             else
                 disp(['Required audiofile: ',char(audio_path_ref+precompute_f_name+".flac"),' was not found']);
                 g = -1;

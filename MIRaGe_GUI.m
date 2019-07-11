@@ -17,6 +17,7 @@ function MIRaGe_GUI()
         
     end
     
+    
     selected_method_idx = 2;
     selected_method = estimators_names(selected_method_idx);
     RTF_est_params.targetFS = 48000;
@@ -233,8 +234,9 @@ function MIRaGe_GUI()
                                 waitfor(warndlg(['Required audiofiles were not found. Required packages: ',required_packages]));
                                 set(findobj(fig,'Type','UIControl'),'Enable','on');
                                 set(src,'String','START');
-                                stop_flag = true;
-                                set(completed_text,'Visible','on');
+%                                 stop_flag = true;
+                                set(completed_text,'Visible','off');
+                                set(estimated_time_text,'Visible','off');
                                 return;
                             end
                             
@@ -273,8 +275,9 @@ function MIRaGe_GUI()
                                 waitfor(warndlg(['Required audiofiles were not found. Required packages:',required_packages]));
                                 set(findobj(fig,'Type','UIControl'),'Enable','on');
                                 set(src,'String','START');
-                                stop_flag = true;
-                                set(completed_text,'Visible','on');
+%                                 stop_flag = true;
+                                set(completed_text,'Visible','off');
+                                set(estimated_time_text,'Visible','off');
                                 return;
                             end
                             
