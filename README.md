@@ -112,7 +112,9 @@ out_struct.data(global_idx).ref_mic = reference microphone index
 out_struct.data(global_idx).t60 = 100 | 300 | 600 ms
 ```
 
-In order to simplify searching this structure. We prepare function:
+In order to simplify searching this structure. We prepared following functions:
+
+* One RTF output
 
 ```matlab
 function [g, index] = findRTF(structure, pos, mic, ref_mic, t60)
@@ -129,6 +131,49 @@ function [g, index] = findRTF(structure, pos, mic, ref_mic, t60)
   %outputs:
   %   g = time-domain filter (ATF or RTF)
   %   index = index of the desired filter within the input structure
+```
+* RTFs tensor output
+
+```matlab
+function [g_tensor, selected_map] = struct2tensor(varargin)
+  %Function that returns a tensor of specified filters saved within a
+  %structure exported from the MIRaGe Utils software
+  %
+  %Syntax:
+  %
+  %[g_tensor, selected_map] = struct2tensor(structure)
+  %[g_tensor, selected_map] = struct2tensor(structure, mic)
+  %[g_tensor, selected_map] = struct2tensor(structure, mic, ref_mic)
+  %[g_tensor, selected_map] = struct2tensor(structure, mic, ref_mic, x)
+  %[g_tensor, selected_map] = struct2tensor(structure, mic, ref_mic, x, y)
+  %[g_tensor, selected_map] = struct2tensor(structure, mic, ref_mic, x, y, z)
+  %[g_tensor, selected_map] = struct2tensor(structure, mic, ref_mic, x, y, z, t60)
+  %
+  %Inputs:
+  %   structure = structure containing data from the MIRaGe software
+  %
+  %   mic = microphones indexes selection, vector of
+  %   mic indexes | scalar for one index | ':' select all
+  %
+  %   ref_mic = references microphones indexes selection, vector of
+  %   mic indexes | scalar for one index | ':' select all
+  %
+  %   x = x axis position in the grid relative coordinates, vector of
+  %   positions | scalar for one position | ':' select all
+  %
+  %   y = y axis position in the grid relative coordinates, vector of
+  %   positions | scalar for one position | ':' select all
+  %
+  %   z = z axis position in the grid relative coordinates, vector of
+  %   positions | scalar for one position | ':' select all
+  %
+  %   t60 = t60 reverberation time selector in ms, vector of
+  %   selected t60s  | scalar one t60 | ':' select all
+  %
+  %Outputs:
+  %   g_tensor = time-domain filters (ATF or RTF) tensor
+  %
+  %   selected_map = selected values of parameters. Order corresponds to g_tensor dimensions
 ```
 
 
