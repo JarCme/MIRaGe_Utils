@@ -217,5 +217,5 @@ Place both files (RTF_function,Parameter_preset) into "RTF_Estimators" folder. B
 | Tomáš Kounovsky | tomas.kounovsky@tul.cz |
 
 
-[issues]: https://github.com/JarCme/MIRaGe/issues
+[issues]: https://github.com/JarCme/MIRaGe_Utils/issues
 [MIRaGe]: https://asap.ite.tul.cz/downloads/mirage/
