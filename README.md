@@ -34,7 +34,8 @@ There are two ways how to obtain desired ATF|RTF: CLI, GUI.
 ```matlab
 function [g,G] = getRTF(method, t60, loc, mic_idx, ref_mic_idx, ...
                         fs_req, N, input_struct, database_folder, ...
-                        phase_corrections, precompute_folder, input_type,oog_or_grid)
+                        phase_corrections, precompute_folder,  ...
+                        input_type,oog_or_grid, delay_correction)
     %Function to retrieve an RTF from the Database 
     % 
     % Input: 
@@ -52,6 +53,7 @@ function [g,G] = getRTF(method, t60, loc, mic_idx, ref_mic_idx, ...
     %   RTF/ATF
     %   input_type = "WN"|"Chirp"
     %   oog_or_grid = 1|0 - 1:OOG 0:Grid;
+    %   delay_correction = 1|0 - 1: allow delay corrections 0: deny delay corrections
     
     % Output:
     %   g = Relative Impulse response

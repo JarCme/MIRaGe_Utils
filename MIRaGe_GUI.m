@@ -39,7 +39,7 @@ function MIRaGe_GUI()
     grid_pos_v2 = {false(24,1),false(19,1),false(9,1)};
     mic_matrix = false(31,32);
     oog_pos_v2 = false(25,1);
-
+    delay_correction = true;
     
     if(exist('last_settings.mat','file')==2)
         load('last_settings.mat');
@@ -66,7 +66,8 @@ function MIRaGe_GUI()
                 'Tag',"Chirp",'String','Chirp','Value',strcmp(snd_type,"Chirp"),'Callback',@snd_type_callback);
 
     % ------
-    panel_RTF_method_selection = uibuttongroup(fig,'Title','RTF estimation method','Position',[0.3351    0.6000    0.322    0.2000]);
+%     panel_RTF_method_selection = uibuttongroup(fig,'Title','RTF estimation method','Position',[0.3351    0.6000    0.322    0.2000]);
+    panel_RTF_method_selection = uibuttongroup(fig,'Title','RTF estimation method','Position',[0.3351    0.6600    0.322    0.1400]);
     method_help = help(estimators_names(selected_method_idx));
     uicontrol(   panel_RTF_method_selection,'Units','normalized','Position',[0.01 0.25 0.98 0.48],'Style','PopUpMenu',...
                         'String',estimators_names,'Value',selected_method_idx,'ToolTipString',method_help,'CallBack',@method_selection_callback);
@@ -76,15 +77,33 @@ function MIRaGe_GUI()
     add_all_parameters();
 
     % ------
-    panel_RTF_params_b_selection = uibuttongroup(fig,'Title','RTF - Basic parameters','Position',[0.3350    0.4000    0.322    0.2000]);
-    uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.01 0.01 0.48 0.48], 'Style', 'Text',...
+%     panel_RTF_params_b_selection = uibuttongroup(fig,'Title','RTF - Basic parameters','Position',[0.3350    0.4000    0.322    0.2000]);
+%     uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.01 0.01 0.48 0.48], 'Style', 'Text',...
+%                 'String','RTF length','HorizontalAlignment','left');
+%     uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.5 0.01 0.48 0.48], 'Style', 'Edit',...
+%                 'String',RTF_est_params.RTFlength,'Tag','RTF_length','CallBack',@insert_number_callback,'UserData',RTF_est_params.RTFlength);
+%     uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.01 0.5 0.48 0.48], 'Style', 'Text',...
+%                 'String','Target FS','HorizontalAlignment','left');
+%     uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.5 0.5 0.48 0.48], 'Style', 'Edit',...
+%                 'String',RTF_est_params.targetFS,'Tag','FS','CallBack',@insert_number_callback,'UserData',RTF_est_params.targetFS);
+    panel_RTF_params_b_selection = uibuttongroup(fig,'Title','RTF - Basic parameters','Position',[0.3350    0.4000    0.322    0.2600]);
+    uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.01 0.32 0.48 0.3], 'Style', 'Text',...
                 'String','RTF length','HorizontalAlignment','left');
-    uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.5 0.01 0.48 0.48], 'Style', 'Edit',...
+    uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.5 0.32 0.48 0.3], 'Style', 'Edit',...
                 'String',RTF_est_params.RTFlength,'Tag','RTF_length','CallBack',@insert_number_callback,'UserData',RTF_est_params.RTFlength);
-    uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.01 0.5 0.48 0.48], 'Style', 'Text',...
+    uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.01 0.68 0.48 0.3], 'Style', 'Text',...
                 'String','Target FS','HorizontalAlignment','left');
-    uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.5 0.5 0.48 0.48], 'Style', 'Edit',...
+    uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.5 0.68 0.48 0.3], 'Style', 'Edit',...
                 'String',RTF_est_params.targetFS,'Tag','FS','CallBack',@insert_number_callback,'UserData',RTF_est_params.targetFS);
+    uicontrol(  panel_RTF_params_b_selection,'Units','normalized','Position',[0.01 0.01 0.98 0.3],'Style','CheckBox',...
+                'String','Delay correction (32. mic)','Value',delay_correction, 'Callback',@delay_correction_callback, ...
+                'Tooltip',sprintf(['This option affects ATFs computed\n', ...
+                                   'between the input sound (mic 32)\n', ...
+                                   'and desired mic (the last column\n', ...
+                                   'selections). This option shifts\n', ... 
+                                   'input sound in order to unify the \n',...,
+                                   'input sound -> speaker delay for \n',...
+                                   'all positions.']));
 
     % ------
     panel_t_60_selection = uibuttongroup(fig,'Title','T60 selection [ms]','Position',[0.0100    0.4000    0.322    0.2000]);
@@ -133,6 +152,11 @@ function MIRaGe_GUI()
     
     function edit_export_var_callback(src,~)
         export_var_name = string(src.String);
+    end
+
+    function delay_correction_callback(src,~)
+        delay_correction = logical(src.Value);
+        disp(delay_correction);
     end
 
     function mic_pos_selector_callback(src,~)
@@ -228,7 +252,7 @@ function MIRaGe_GUI()
                             tic;
                             [g,~] = getRTF(     selected_method, t60_list(idx_t60),  grid_pos(idx_pos_grid,:),...
                                                 col(idx_mic), row(idx_mic), RTF_est_params.targetFS,  RTF_est_params.RTFlength, RTF_est_params.input_struct,...
-                                                 folder_database, phase_corrections,  folder_output,  snd_type,0);
+                                                 folder_database, phase_corrections,  folder_output,  snd_type,0,delay_correction);
                             
                             if(g == -1)
                                 waitfor(warndlg(['Required audiofiles were not found. Required packages: ',required_packages]));
@@ -269,7 +293,7 @@ function MIRaGe_GUI()
 %                             disp(oog_pos(idx_pos_oog));
                             [g,~] = getRTF(     selected_method, t60_list(idx_t60),  oog_pos(idx_pos_oog),...
                                                 col(idx_mic), row(idx_mic), RTF_est_params.targetFS,  RTF_est_params.RTFlength, RTF_est_params.input_struct,...
-                                                 folder_database, phase_corrections,  folder_output,  snd_type,1);
+                                                 folder_database, phase_corrections,  folder_output,  snd_type,1,delay_correction);
                             
                             if(g == -1)
                                 waitfor(warndlg(['Required audiofiles were not found. Required packages:',required_packages]));

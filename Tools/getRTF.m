@@ -1,4 +1,4 @@
-function [g,G] = getRTF(method, t60, loc, mic_idx, ref_mic_idx,fs_req, N, input_struct, database_folder, phase_corrections, precompute_folder, input_type,oog_or_grid)
+function [g,G] = getRTF(method, t60, loc, mic_idx, ref_mic_idx,fs_req, N, input_struct, database_folder, phase_corrections, precompute_folder, input_type,oog_or_grid, delay_correction)
     %Function to retrieve an RTF from the Database 
     % 
     % Input: 
@@ -16,7 +16,8 @@ function [g,G] = getRTF(method, t60, loc, mic_idx, ref_mic_idx,fs_req, N, input_
     %   precompute_folder = folder path for saving and loading precomputed RTFs 
     %   RTF/ATF
     %   input_type = "WN"|"Chirp"
-    %   oog_or_grid = 1|0 - 1:OOG 0:Grid;
+    %   oog_or_grid = 1|0 - 1: OOG 0: Grid;
+    %   delay_correction = 1|0 - 1: allow delay corrections 0: deny delay corrections
     
     % Output:
     %   g = 1x(nc_len+c_len) RTF in time domain
@@ -49,6 +50,9 @@ function [g,G] = getRTF(method, t60, loc, mic_idx, ref_mic_idx,fs_req, N, input_
                                 "-"+string(struct2cell(input_struct))],filesep)+filesep+"OOG"+filesep;
                         
         precompute_f_name = input_type+"_t60-"+t60+"_pid-"+loc(1);
+        %-----------------------delay correction changes
+        loc = [loc(1),-1,-1];
+        %
     else
         
         audio_path_ref = base_path+input_type+"_"+t60+filesep+"Grid"+filesep;
@@ -96,12 +100,20 @@ function [g,G] = getRTF(method, t60, loc, mic_idx, ref_mic_idx,fs_req, N, input_
                 return;
             end
             
+            %-----------------------delay correction
+            if(delay_correction)
+                delay_correct = load(['delays_',char(input_type),'_',num2str(t60),'.mat']);          
+                idx_delay_correct = find(ismember(delay_correct.coords,[loc(1),loc(2),loc(3)],'rows'));
+                x_ref = circshift(x_ref,delay_correct.delays(idx_delay_correct));
+            end
+            %
+             
             padding_len = length(x_tar) - length(x_ref);
             if(padding_len>0)
                 x_ref = [x_ref;zeros(padding_len,1)];
             else
                 x_ref = x_ref(1:length(x_tar));
-            end 
+            end     
         else
             
             if(exist(char(audio_path_ref+precompute_f_name+".flac"),'file')==2)
